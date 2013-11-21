@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <title>A Stack Example</title>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+  </head>
+  <body>
+    <h2>A Stack Example</h2>
+    <p>Adapted from Scott Murray's Book.</p>
+    <svg></svg>
+    <script>
+      //Width and height
+      var w = 500;
+      var h = 300;
+      var margin = {left: 20, right: 20, top: 20, bottom: 60};
+      var width = w - margin.left - margin.right;
+      var height = h - margin.top - margin.bottom;
+
+      //Original data
+      var dataset = [
+          {
+            name: "Apples",
+            values: [
+              { y: 5 },
+              { y: 4 },
+              { y: 2 },
+              { y: 7 },
+              { y: 23 }
+            ]
+          },
+          {
+            name: "Bananas",
+            values: [
+              { y: 10 },
+              { y: 12 },
+              { y: 19 },
+              { y: 23 },
+              { y: 17 }
+            ],
+          },
+          {
+            name: "Grapes",
+            values: [
+              { y: 22 },
+              { y: 28 },
+              { y: 32 },
+              { y: 35 },
+              { y: 43 }
+            ]
+          }
+      ];
+
+      //Set up stack method
+      var stack = d3.layout.stack();
+
+      //Data, stacked
+      stack(dataset);
+
+      //Set up scales
+      var xScale = d3.scale.ordinal()
+          .domain(d3.range(dataset[0].length))
+          .rangeRoundBands([0, width], 0.05);
+
+      var yScale = d3.scale.linear()
+          .domain([0,
+              d3.max(dataset, function(d) {
+                  return d3.max(d, function(d) {
+                      return d.y0 + d.y;
+                  });
+              })
+          ])
+          .range([height, 0]);
+      var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient("bottom")
+
+      //Easy colors accessible via a 10-step ordinal scale
+      var colors = d3.scale.category10();
+      // Names for the categories
+      var categories = ["Apples", "Bananas", "Grapes"];
+
+      //Create SVG element
+      var svg = d3.select("svg")
+                  .attr("width", w)
+                  .attr("height", h);
+
+      // Add a group for each row of data
+      var groups = svg.selectAll("g")
+          .data(dataset)
+          .enter()
+          .append("g")
+          .attr("transform","translate(" + [margin.left, margin.top] + ")")
+          .style("fill", function(d, i) {
+              return colors(i);
+          });
+
+      // Add a rect for each data value
+      var rects = groups.selectAll("rect")
+          .data(function(d) { return d; })
+          .enter()
+          .append("rect")
+          .attr("x", function(d, i) {
+              return xScale(i);
+          })
+          .attr("y", function(d) {
+            return yScale(d.y0 + d.y);
+          })
+          .attr("height", function(d) {
+            return height - yScale(d.y);
+          })
+          .attr("width", xScale.rangeBand());
+      // Add the x axis
+      svg.append("g").attr({
+        "class": "x axis",
+        "transform": "translate(" + [margin.left, height + margin.top] + ")"
+      }).call(xAxis);
+
+      var legend = svg.append("g").attr({
+        "class": "legend",
+        "transform": "translate(" + [margin.left, height + margin.top + 10] + ")"
+      });
+      dataset.forEach(function(d,i) {
+        legend.append("rect").attr({
+          "transform": "translate(" + [ 10 + (i * 140), 20] + ")",
+          "x": 0,
+          "y": 0,
+          "width": 14,
+          "height":14,
+          "fill": colors(i)
+          });
+        legend.append("text").attr({
+          "transform": "translate(" + [ 30 + (i * 140), 33] + ")",
+          "fill": colors(i)
+          }).text(categories[i]);
+      });
+    </script>
+  </body>
+</html>
