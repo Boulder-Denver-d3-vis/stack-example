@@ -51,20 +51,20 @@
       ];
 
       //Set up stack method
-      var stack = d3.layout.stack();
+      var stack = d3.layout.stack().values(function(d) { return d.values;});
 
       //Data, stacked
       stack(dataset);
 
       //Set up scales
       var xScale = d3.scale.ordinal()
-          .domain(d3.range(dataset[0].length))
+          .domain(d3.range(dataset[0].values.length))
           .rangeRoundBands([0, width], 0.05);
 
       var yScale = d3.scale.linear()
           .domain([0,
               d3.max(dataset, function(d) {
-                  return d3.max(d, function(d) {
+                  return d3.max(d.values, function(d) {
                       return d.y0 + d.y;
                   });
               })
@@ -76,8 +76,8 @@
 
       //Easy colors accessible via a 10-step ordinal scale
       var colors = d3.scale.category10();
-      // Names for the categories
-      var categories = ["Apples", "Bananas", "Grapes"];
+
+      console.log(dataset);
 
       //Create SVG element
       var svg = d3.select("svg")
@@ -96,13 +96,14 @@
 
       // Add a rect for each data value
       var rects = groups.selectAll("rect")
-          .data(function(d) { return d; })
+          .data(function(d) { return d.values; })
           .enter()
           .append("rect")
           .attr("x", function(d, i) {
               return xScale(i);
           })
           .attr("y", function(d) {
+              console.log(d);
             return yScale(d.y0 + d.y);
           })
           .attr("height", function(d) {
@@ -131,7 +132,7 @@
         legend.append("text").attr({
           "transform": "translate(" + [ 30 + (i * 140), 33] + ")",
           "fill": colors(i)
-          }).text(categories[i]);
+          }).text(d.name);
       });
     </script>
   </body>
